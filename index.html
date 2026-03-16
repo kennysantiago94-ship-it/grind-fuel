@@ -275,7 +275,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 
 <div class="toast" id="toast"></div>
 
-<script>
+<script type="module">
 // ══════════════════════════════════════════
 // SHARED
 // ══════════════════════════════════════════
@@ -698,15 +698,69 @@ function renderTabs(){
 }
 function setWDay(i){wDay=i;renderTabs();renderContent();}
 function renderContent(){document.getElementById('scrollArea').scrollTop=0;document.getElementById('content').innerHTML=currentView==='workout'?renderWorkoutDay():renderMealDay();}
-function persist(){try{localStorage.setItem('gf3_w',JSON.stringify(workoutData));localStorage.setItem('gf3_cx',JSON.stringify(customEx));localStorage.setItem('gf3_sh',JSON.stringify(shopCk));}catch(e){}}
-function init(){
-  try{const a=localStorage.getItem('gf3_w');if(a)workoutData=JSON.parse(a);const b=localStorage.getItem('gf3_cx');if(b)customEx=JSON.parse(b);const c=localStorage.getItem('gf3_sh');if(c)shopCk=JSON.parse(c);}catch(e){}
+// ══════════════════════════════════════════
+// FIREBASE CLOUD SAVING
+// ══════════════════════════════════════════
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB5uG39CmbnA5aDmVjk_OGA7kEOzDf71wo",
+  authDomain: "grind-fuel.firebaseapp.com",
+  projectId: "grind-fuel",
+  storageBucket: "grind-fuel.firebasestorage.app",
+  messagingSenderId: "1039126729396",
+  appId: "1:1039126729396:web:5a7133be64debf61933de1"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+const USER_ID = 'kenny';
+
+let saveTimer = null;
+function persist(){
+  try{
+    localStorage.setItem('gf3_w',JSON.stringify(workoutData));
+    localStorage.setItem('gf3_cx',JSON.stringify(customEx));
+    localStorage.setItem('gf3_sh',JSON.stringify(shopCk));
+  }catch(e){}
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async()=>{
+    try{
+      await setDoc(doc(db,'users',USER_ID),{
+        workoutData: JSON.stringify(workoutData),
+        customEx: JSON.stringify(customEx),
+        shopCk: JSON.stringify(shopCk),
+        updatedAt: new Date().toISOString()
+      });
+      showToast('☁️ Saved!');
+    }catch(e){console.log('Cloud save error:',e);}
+  },1500);
+}
+
+async function init(){
   const map={1:0,2:1,3:2,4:3,5:4,6:5,0:6};
   wDay=map[new Date().getDay()]??0;
   const diff=Math.floor((new Date()-START_DATE)/(7*24*60*60*1000));
   currentWeek=Math.max(1,diff+1);
   mWeek=currentWeek;
-  renderTopbar();renderTabs();renderContent();
+  document.getElementById('content').innerHTML=`<div style="text-align:center;padding:60px 20px;color:var(--muted)"><div style="font-size:30px;margin-bottom:12px">☁️</div><div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px">LOADING YOUR DATA...</div></div>`;
+  renderTopbar();renderTabs();
+  try{
+    const snap = await getDoc(doc(db,'users',USER_ID));
+    if(snap.exists()){
+      const d=snap.data();
+      if(d.workoutData)workoutData=JSON.parse(d.workoutData);
+      if(d.customEx)customEx=JSON.parse(d.customEx);
+      if(d.shopCk)shopCk=JSON.parse(d.shopCk);
+      showToast('☁️ Data loaded!');
+    } else {
+      try{const a=localStorage.getItem('gf3_w');if(a)workoutData=JSON.parse(a);const b=localStorage.getItem('gf3_cx');if(b)customEx=JSON.parse(b);const c=localStorage.getItem('gf3_sh');if(c)shopCk=JSON.parse(c);}catch(e){}
+    }
+  }catch(e){
+    try{const a=localStorage.getItem('gf3_w');if(a)workoutData=JSON.parse(a);const b=localStorage.getItem('gf3_cx');if(b)customEx=JSON.parse(b);const c=localStorage.getItem('gf3_sh');if(c)shopCk=JSON.parse(c);}catch(e2){}
+  }
+  renderContent();
 }
 init();
 </script>
