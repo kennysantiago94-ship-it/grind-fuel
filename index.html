@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>GRIND + FUEL</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0d0f;--surface:#16161a;--surface2:#1e1e24;--border:#2a2a32;
+  --w-accent:#e8ff47;--m-accent:#7fff5f;
+  --accent2:#ffca3a;--red:#ff6b6b;--blue:#47c8ff;--green:#2ed573;
+  --text:#f0f0f5;--muted:#6b6b7e;
+  --p-color:#7fff5f;--c-color:#ffca3a;--f-color:#ff9f43;
+  --warm:#1a2a3a;--finish:#0f2a1a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;}
+.install-banner{background:linear-gradient(135deg,#1a2a1a,#0f2a0f);border-bottom:1px solid var(--m-accent);padding:8px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.install-text{font-size:11px;color:var(--m-accent);flex:1;line-height:1.4;}
+.install-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0 4px;}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.app-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;white-space:nowrap;transition:color 0.2s;}
+.app-title.workout{color:var(--w-accent);}
+.app-title.meal{color:var(--m-accent);}
+.topbar-center{flex:1;display:flex;gap:5px;justify-content:center;}
+.macro-pill{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:3px 8px;text-align:center;}
+.macro-pill .val{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;line-height:1;}
+.macro-pill .lbl{font-size:8px;color:var(--muted);letter-spacing:0.5px;text-transform:uppercase;}
+.macro-pill.p .val{color:var(--p-color);}
+.macro-pill.c .val{color:var(--c-color);}
+.macro-pill.f .val{color:var(--f-color);}
+.week-nav{display:flex;align-items:center;gap:6px;}
+.week-nav button{background:var(--surface2);border:1px solid var(--border);color:var(--text);width:28px;height:28px;border-radius:7px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.week-info{text-align:center;}
+.week-num{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;line-height:1;}
+.week-num.workout{color:var(--w-accent);}
+.week-num.meal{color:var(--m-accent);}
+.week-dates{font-size:9px;color:var(--muted);}
+.topbar-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:7px;padding:5px 9px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.15s;flex-shrink:0;}
+.topbar-btn:hover{border-color:var(--accent2);color:var(--accent2);}
+.day-tabs{display:flex;overflow-x:auto;background:var(--surface);border-bottom:1px solid var(--border);scrollbar-width:none;flex-shrink:0;}
+.day-tabs::-webkit-scrollbar{display:none;}
+.dtab{flex:0 0 auto;padding:8px 14px;font-size:10px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;text-align:center;}
+.dtab.active.workout{color:var(--w-accent);border-bottom-color:var(--w-accent);}
+.dtab.rest{opacity:0.4;cursor:default;}
+.dtab-sub{font-size:8px;color:var(--muted);display:block;margin-top:1px;}
+.scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.main{padding:14px;max-width:700px;margin:0 auto;}
+.bottom-nav{background:var(--surface);border-top:1px solid var(--border);display:flex;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom);}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 8px;cursor:pointer;border:none;background:none;color:var(--muted);transition:color 0.15s;gap:3px;}
+.nav-icon{font-size:22px;line-height:1;}
+.nav-label{font-size:10px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;}
+.nav-btn.active.workout{color:var(--w-accent);}
+.nav-btn.active.meal{color:var(--m-accent);}
+
+/* WORKOUT */
+.exercise-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;}
+.exercise-card.warmup{border-left:3px solid var(--blue);background:var(--warm);}
+.exercise-card.finisher{border-left:3px solid var(--green);background:var(--finish);}
+.card-header{display:flex;align-items:center;padding:11px 13px;gap:9px;cursor:pointer;user-select:none;}
+.ex-badge{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 6px;border-radius:4px;white-space:nowrap;flex-shrink:0;}
+.badge-warmup{background:rgba(71,200,255,0.15);color:var(--blue);}
+.badge-finish{background:rgba(46,213,115,0.15);color:var(--green);}
+.badge-lift{background:rgba(232,255,71,0.1);color:var(--w-accent);}
+.ex-info{flex:1;min-width:0;}
+.ex-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ex-target{font-size:10px;color:var(--muted);margin-top:1px;}
+.card-actions{display:flex;gap:7px;align-items:center;}
+.watch-btn{background:rgba(255,71,87,0.12);color:#ff6b7a;border:none;padding:4px 9px;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:3px;white-space:nowrap;}
+.swap-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);width:26px;height:26px;border-radius:5px;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.chevron{font-size:10px;color:var(--muted);transition:transform 0.2s;margin-left:3px;flex-shrink:0;}
+.chevron.open{transform:rotate(90deg);}
+.set-logger{display:none;padding:0 13px 13px;}
+.set-logger.open{display:block;}
+.sets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:7px;margin-bottom:7px;}
+.set-block{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:7px 9px;}
+.set-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:5px;}
+.set-inputs{display:flex;gap:5px;}
+.set-input-wrap{flex:1;}
+.set-input-label{font-size:8px;color:var(--muted);margin-bottom:2px;}
+.set-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:5px 6px;text-align:center;transition:border-color 0.15s;}
+.set-input:focus{outline:none;border-color:var(--w-accent);}
+.set-input.filled{border-color:var(--green);color:var(--green);}
+.cardio-log{background:var(--surface2);border-radius:7px;padding:9px 11px;display:flex;gap:9px;align-items:center;}
+.cardio-label{font-size:10px;color:var(--muted);flex-shrink:0;}
+.cardio-input{background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 9px;width:170px;}
+.cardio-input:focus{outline:none;border-color:var(--blue);}
+.day-footer{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:12px;margin-top:8px;display:flex;gap:9px;flex-wrap:wrap;}
+.footer-field{flex:1;min-width:110px;}
+.footer-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:3px;}
+.footer-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;padding:7px 9px;}
+.footer-input:focus{outline:none;border-color:var(--w-accent);}
+.save-bar{padding:10px 14px 14px;max-width:700px;margin:0 auto;display:flex;gap:9px;}
+.save-btn{flex:1;background:var(--w-accent);color:var(--bg);border:none;border-radius:9px;padding:13px;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;cursor:pointer;}
+.clear-btn{background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:9px;padding:13px 16px;font-size:12px;cursor:pointer;}
+
+/* MEAL */
+.week-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(127,255,95,0.12),rgba(127,255,95,0.05));border:1px solid rgba(127,255,95,0.3);border-radius:20px;padding:5px 12px;margin-bottom:14px;}
+.week-badge-label{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--m-accent);}
+.week-badge-sub{font-size:10px;color:var(--muted);}
+.budget-banner{background:linear-gradient(135deg,rgba(46,213,115,0.08),rgba(46,213,115,0.03));border:1px solid rgba(46,213,115,0.2);border-radius:12px;padding:11px 14px;margin-bottom:14px;display:flex;align-items:center;gap:12px;}
+.budget-icon{font-size:24px;flex-shrink:0;}
+.budget-info{flex:1;}
+.budget-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;color:var(--green);}
+.budget-sub{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.5;}
+.budget-day{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--green);letter-spacing:1px;flex-shrink:0;text-align:right;}
+.budget-day span{font-size:9px;font-family:'DM Sans',sans-serif;color:var(--muted);display:block;}
+.day-summary{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 15px;margin-bottom:14px;}
+.summary-title{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:var(--muted);margin-bottom:9px;}
+.macro-row{display:flex;align-items:center;gap:9px;margin-bottom:6px;}
+.macro-name{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;width:52px;flex-shrink:0;}
+.macro-name.p{color:var(--p-color);}
+.macro-name.c{color:var(--c-color);}
+.macro-name.f{color:var(--f-color);}
+.macro-track{flex:1;background:var(--surface2);border-radius:4px;height:5px;overflow:hidden;}
+.macro-fill{height:100%;border-radius:4px;transition:width 0.5s;}
+.macro-fill.p{background:var(--p-color);}
+.macro-fill.c{background:var(--c-color);}
+.macro-fill.f{background:var(--f-color);}
+.macro-nums{font-size:10px;color:var(--muted);white-space:nowrap;width:78px;text-align:right;flex-shrink:0;}
+.cal-row{display:flex;justify-content:space-between;align-items:center;margin-top:9px;padding-top:9px;border-top:1px solid var(--border);}
+.cal-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;}
+.cal-value{font-family:'Bebas Neue',sans-serif;font-size:17px;}
+
+/* FIXED meals (snacks, shake, breakfast) */
+.fixed-label{display:inline-block;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:middle;}
+
+.meal-card{background:#141a14;border:1px solid var(--border);border-radius:12px;margin-bottom:11px;overflow:hidden;}
+.meal-card.shake-card{border-color:rgba(127,255,95,0.25);}
+.meal-card.rotating{border-color:rgba(232,255,71,0.2);}
+.meal-header{display:flex;align-items:center;padding:11px 13px;gap:9px;cursor:pointer;user-select:none;}
+.meal-icon-box{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.meal-info{flex:1;min-width:0;}
+.meal-name-row{display:flex;align-items:center;}
+.meal-name{font-size:13px;font-weight:600;}
+.meal-time{font-size:10px;color:var(--muted);margin-top:1px;}
+.meal-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;}
+.meal-cals{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--accent2);letter-spacing:0.5px;}
+.meal-cost{font-size:10px;color:var(--green);font-weight:600;}
+.meal-body{display:none;padding:0 13px 13px;}
+.meal-body.open{display:block;}
+.food-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);}
+.food-row:last-child{border-bottom:none;}
+.food-left{flex:1;}
+.food-name{font-size:12px;}
+.food-detail{font-size:10px;color:var(--muted);margin-top:1px;}
+.food-right{text-align:right;flex-shrink:0;margin-left:10px;}
+.food-macros{font-size:10px;color:var(--muted);}
+.food-cal{font-size:11px;color:var(--accent2);font-weight:600;}
+.meal-note{background:var(--surface2);border-radius:7px;padding:7px 9px;margin-top:9px;font-size:11px;color:var(--muted);line-height:1.5;border-left:2px solid var(--m-accent);}
+.meal-note.shake{border-left-color:var(--p-color);}
+.meal-note.rotate{border-left-color:var(--w-accent);}
+
+/* PREP & SHOP */
+.prep-box{background:var(--surface);border:1px solid rgba(46,213,115,0.2);border-radius:12px;padding:13px 14px;margin-top:4px;}
+.prep-title{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--green);margin-bottom:8px;}
+.prep-step{font-size:12px;color:var(--muted);line-height:1.9;padding-left:4px;}
+.prep-step strong{color:var(--text);}
+
+/* MODALS */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:200;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:18px 15px 34px;width:100%;max-width:520px;max-height:84vh;overflow-y:auto;animation:slideUp 0.25s ease;position:relative;}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;margin-bottom:3px;}
+.modal-sub{font-size:11px;color:var(--muted);margin-bottom:14px;}
+.modal-close{position:absolute;top:14px;right:14px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;}
+.modal-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 12px;margin-bottom:11px;}
+.modal-input:focus{outline:none;border-color:var(--w-accent);}
+.swap-option{padding:10px 12px;border-radius:7px;border:1px solid var(--border);margin-bottom:5px;cursor:pointer;transition:all 0.15s;}
+.swap-option:hover{border-color:var(--w-accent);}
+.swap-option-name{font-size:13px;font-weight:600;}
+.swap-option-muscle{font-size:10px;color:var(--muted);margin-top:1px;}
+.custom-swap-btn{width:100%;background:var(--w-accent);color:var(--bg);border:none;border-radius:7px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;margin-top:7px;}
+.export-content{background:var(--surface2);border-radius:9px;padding:12px;margin:11px 0;font-size:10px;line-height:1.7;color:var(--text);white-space:pre-wrap;font-family:'Courier New',monospace;max-height:260px;overflow-y:auto;border:1px solid var(--border);}
+.export-actions{display:flex;gap:9px;margin-top:11px;}
+.copy-btn{flex:1;background:var(--w-accent);color:var(--bg);border:none;border-radius:7px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;}
+.dl-btn{flex:1;background:var(--surface2);border:1px solid var(--blue);color:var(--blue);border-radius:7px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;}
+.shop-total-banner{background:linear-gradient(135deg,rgba(46,213,115,0.1),rgba(46,213,115,0.04));border:1px solid rgba(46,213,115,0.3);border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+.shop-total-val{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--green);letter-spacing:1px;}
+.shop-section{margin-bottom:14px;}
+.shop-cat{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+.shop-item{display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+.shop-item:last-child{border-bottom:none;}
+.shop-cb{width:16px;height:16px;border:1px solid var(--border);border-radius:3px;background:var(--surface2);cursor:pointer;flex-shrink:0;margin-top:2px;transition:all 0.15s;}
+.shop-cb.checked{background:var(--m-accent);border-color:var(--m-accent);}
+.shop-text{flex:1;}
+.shop-name{font-size:12px;}
+.shop-qty{font-size:10px;color:var(--muted);margin-top:1px;}
+.shop-price{font-size:12px;font-weight:600;color:var(--accent2);white-space:nowrap;flex-shrink:0;}
+.week-pills{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+.week-pill{flex:1;min-width:60px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 6px;text-align:center;cursor:pointer;transition:all 0.15s;}
+.week-pill.active{background:rgba(127,255,95,0.1);border-color:var(--m-accent);}
+.week-pill-num{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--m-accent);letter-spacing:1px;}
+.week-pill-sub{font-size:9px;color:var(--muted);margin-top:1px;}
+.rest-screen{text-align:center;padding:50px 20px;}
+.rest-icon{font-size:55px;margin-bottom:14px;}
+.rest-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;color:var(--muted);}
+.rest-sub{color:var(--muted);font-size:13px;margin-top:7px;}
+
+.pr-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(255,202,58,0.15);border:1px solid rgba(255,202,58,0.4);border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700;color:var(--accent2);margin-top:5px;}
+.pr-row{display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border-radius:7px;padding:7px 10px;margin-bottom:8px;}
+.pr-ex-name{font-size:11px;font-weight:600;flex:1;}
+.pr-val{font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--accent2);letter-spacing:0.5px;}
+.pr-reps{font-size:9px;color:var(--muted);margin-left:4px;}
+.new-pr-banner{background:linear-gradient(135deg,rgba(255,202,58,0.2),rgba(255,202,58,0.05));border:1px solid rgba(255,202,58,0.5);border-radius:8px;padding:8px 11px;margin-bottom:8px;display:flex;align-items:center;gap:8px;animation:prPulse 0.5s ease;}
+@keyframes prPulse{0%{transform:scale(1);}50%{transform:scale(1.02);}100%{transform:scale(1);}}
+.pr-modal-list{max-height:400px;overflow-y:auto;}
+
+.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--green);color:var(--bg);padding:9px 18px;border-radius:18px;font-weight:700;font-size:12px;opacity:0;transition:all 0.3s;pointer-events:none;z-index:300;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<div class="install-banner" id="ib">
+  <div class="install-text"><strong>📱 Save to phone:</strong> iPhone → Safari → Share → "Add to Home Screen" | Android → Chrome → ⋮ → "Add to Home Screen"</div>
+  <button class="install-close" onclick="document.getElementById('ib').style.display='none'">✕</button>
+</div>
+
+<div class="topbar">
+  <div class="app-title workout" id="appTitle">GRIND</div>
+  <div class="topbar-center" id="topbarCenter"></div>
+  <button class="topbar-btn" id="topbarBtn"></button>
+  <button class="topbar-btn" id="prBtn" style="color:var(--accent2);border-color:rgba(255,202,58,0.3);display:none" onclick="openPR()">🏆 PRs</button>
+</div>
+
+<div class="day-tabs" id="dayTabs"></div>
+
+<div class="scroll-area" id="scrollArea">
+  <div id="content"></div>
+  <div id="saveBarContainer"></div>
+</div>
+
+<div class="bottom-nav">
+  <button class="nav-btn active workout" id="navWorkout" onclick="switchView('workout')">
+    <div class="nav-icon">🏋️</div><div class="nav-label">Workout</div>
+  </button>
+  <button class="nav-btn" id="navMeal" onclick="switchView('meal')">
+    <div class="nav-icon">🥗</div><div class="nav-label">Meals</div>
+  </button>
+</div>
+
+<!-- SWAP MODAL -->
+<div class="modal-overlay" id="swapOverlay" onclick="closeSwap(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeSwap()">✕</button>
+    <div class="modal-title" style="color:var(--w-accent)">SWAP EXERCISE</div>
+    <div class="modal-sub">Replacing: <span id="replacingName"></span></div>
+    <input class="modal-input" id="customExName" placeholder="Type custom exercise name..."/>
+    <div id="swapOptions"></div>
+    <button class="custom-swap-btn" onclick="applyCustomSwap()">Use Custom Exercise</button>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="exportOverlay" onclick="closeExport(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeExport()">✕</button>
+    <div class="modal-title" style="color:var(--w-accent)">WEEK <span id="exportWeekNum"></span> SUMMARY</div>
+    <div class="modal-sub" id="exportWeekDates"></div>
+    <div class="export-content" id="exportContent"></div>
+    <div class="export-actions">
+      <button class="copy-btn" onclick="copyExport()">📋 Copy</button>
+      <button class="dl-btn" onclick="downloadExport()">⬇ Download</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHOPPING MODAL -->
+<div class="modal-overlay" id="shopOverlay" onclick="closeShop(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeShop()">✕</button>
+    <div class="modal-title" style="color:var(--m-accent)">WEEK <span id="shopWeekLabel"></span> SHOPPING LIST</div>
+    <div class="modal-sub" id="shopWeekSub"></div>
+    <div class="week-pills" id="shopWeekPills"></div>
+    <div class="shop-total-banner">
+      <div><div style="font-size:11px;color:var(--muted)">Est. Weekly Total</div><div style="font-size:10px;color:var(--muted);margin-top:2px">~$9/day · 7 days</div></div>
+      <div style="text-align:right"><div class="shop-total-val" id="shopTotalVal">~$63</div><div style="font-size:9px;color:var(--muted)">approx. prices</div></div>
+    </div>
+    <div id="shopList"></div>
+  </div>
+</div>
+
+
+
+<!-- MEAL SWAP MODAL -->
+<div class="modal-overlay" id="mealSwapOverlay" onclick="closeMealSwap(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeMealSwap()">✕</button>
+    <div class="modal-title" style="color:var(--m-accent)">SWAP MEAL</div>
+    <div class="modal-sub">Replacing: <span id="mealSwapName"></span></div>
+    <div id="mealSwapOptions"></div>
+  </div>
+</div>
+
+<!-- PR MODAL -->
+<div class="modal-overlay" id="prOverlay" onclick="closePR(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closePR()">✕</button>
+    <div class="modal-title" style="color:var(--accent2)">🏆 PERSONAL RECORDS</div>
+    <div class="modal-sub">Your all-time best weight per exercise</div>
+    <button onclick="resetAllPRs()" style="background:rgba(255,107,107,0.15);border:1px solid rgba(255,107,107,0.4);color:#ff6b6b;border-radius:7px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;width:100%;margin-bottom:12px">🗑️ Reset All PRs</button>
+    <div class="pr-modal-list" id="prList"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+// ══════════════════════════════════════════
+// SHARED
+// ══════════════════════════════════════════
+const START_DATE = new Date('2026-03-09');
+let currentView = 'workout';
+function switchView(v){
+  currentView=v;
+  document.getElementById('navWorkout').className='nav-btn'+(v==='workout'?' active workout':'');
+  document.getElementById('navMeal').className='nav-btn'+(v==='meal'?' active meal':'');
+  renderTopbar();renderTabs();renderContent();
+}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+// ══════════════════════════════════════════
+// WORKOUT DATA
+// ══════════════════════════════════════════
+let currentWeek=1,wDay=0,swapTarget=null,workoutData={},customEx={},wOpen={};
+let prData={};// {exName: {weight, reps, date}}
+
+const yt=q=>'https://www.youtube.com/results?search_query='+encodeURIComponent(q+' exercise form');
+const WEX=(name,sets,target,type,url,sg)=>({name,sets,target,type,url,swapGroup:sg});
+const W_DAYS_DATA=[
+  {id:'mon',label:'MON',title:'Upper',sub:'Chest · Back · Shoulders · Arms · Core',rest:false,exercises:[
+    WEX('Treadmill Warm-Up',0,'20 min incline walk → jog (Zone 2)','warmup',null,null),
+    WEX('Incline Barbell Bench Press',3,'8 @ 60-70% 1RM','lift',yt('incline barbell bench press'),'chest'),
+    WEX('Pull-Ups',3,'6-10','lift',yt('pull ups'),'back'),
+    WEX('Seated DB Shoulder Press',3,'8','lift',yt('seated dumbbell shoulder press'),'shoulders'),
+    WEX('Flat DB Bench Press + Seated Cable Row (Superset)',3,'8-10 each','lift',yt('dumbbell bench press superset'),'chest'),
+    WEX('EZ Bar Curls + Close Grip Bench Press (Superset)',3,'8-10 each','lift',yt('ez bar curl'),'biceps'),
+    WEX('Cable Woodchoppers',3,'12-15 each side','lift',yt('cable woodchoppers'),'core'),
+    WEX('Hanging Leg Raises',3,'10-12','lift',yt('hanging leg raises'),'core'),
+    WEX('Row Finisher',0,'10 min steady row @ Zone 2','finisher',null,null),
+  ]},
+  {id:'tue',label:'TUE',title:'Lower',sub:'Quads · Hamstrings · Glutes · Calves · Core',rest:false,exercises:[
+    WEX('Treadmill Warm-Up',0,'20 min incline walk → jog (Zone 2)','warmup',null,null),
+    WEX('Conventional Deadlift',3,'8 @ 60-70% 1RM','lift',yt('conventional deadlift'),'posterior'),
+    WEX('Front Squat',3,'8 @ 60-70% 1RM','lift',yt('front squat'),'quads'),
+    WEX('Hip Thrust',3,'8-10','lift',yt('hip thrust'),'posterior'),
+    WEX('Leg Extensions + Seated Leg Curls (Superset)',3,'10-12 each','lift',yt('leg extension seated leg curl superset'),'quads'),
+    WEX('Seated Calf Raises',3,'12-15','lift',yt('seated calf raises'),'posterior'),
+    WEX('Ab Wheel Rollouts',3,'10-12','lift',yt('ab wheel rollout'),'core'),
+    WEX('Plank',3,'30-45 sec','lift',yt('plank core'),'core'),
+    WEX('Row Finisher',0,'2000m row for time','finisher',null,null),
+  ]},
+  {id:'wed',label:'WED',title:'Rest Day',sub:'',rest:true,exercises:[]},
+  {id:'thu',label:'THU',title:'Push',sub:'Chest · Shoulders · Triceps · Core',rest:false,exercises:[
+    WEX('Treadmill Warm-Up',0,'20 min incline walk → jog (Zone 2)','warmup',null,null),
+    WEX('Barbell Bench Press',3,'8 @ 60-70% 1RM','lift',yt('barbell bench press'),'chest'),
+    WEX('Overhead Press',3,'8','lift',yt('overhead press'),'shoulders'),
+    WEX('Incline DB Press',3,'8-10','lift',yt('incline dumbbell press'),'chest'),
+    WEX('DB Lateral Raises + Cable Lateral Raises (Superset)',3,'12-15 each','lift',yt('lateral raises superset'),'shoulders'),
+    WEX('Tricep Rope Extensions + Close Grip Press-Ups (Superset)',3,'8-10 each','lift',yt('tricep rope extension'),'triceps'),
+    WEX('Hanging Knee Raises',3,'12-15','lift',yt('hanging knee raises'),'core'),
+    WEX('Plank',3,'30-45 sec','lift',yt('plank core'),'core'),
+    WEX('Row Finisher',0,'5 x 0.25 mile @ Zone 4-5 (8.0-8.5 mph), 90s rest','finisher',null,null),
+  ]},
+  {id:'fri',label:'FRI',title:'Pull',sub:'Back · Rear Delts · Biceps · Core',rest:false,exercises:[
+    WEX('Treadmill Warm-Up',0,'20 min incline walk → strides (Zone 2)','warmup',null,null),
+    WEX('Weighted Pull-Ups or Lat Pulldown',3,'6-8','lift',yt('weighted pull ups lat pulldown'),'back'),
+    WEX('Barbell Row',3,'8','lift',yt('barbell bent over row'),'back'),
+    WEX('Seated Cable Row',3,'8-10','lift',yt('seated cable row'),'back'),
+    WEX('Face Pulls + Rear Delt Fly (Superset)',3,'12-15 each','lift',yt('face pulls rear delt fly'),'back'),
+    WEX('Barbell Curls + Hammer Curls (Superset)',3,'8-10 each','lift',yt('barbell curl hammer curl'),'biceps'),
+    WEX('Back Extensions',3,'10-12','lift',yt('back extensions'),'back'),
+    WEX('Ab Wheel Rollouts',3,'10-12','lift',yt('ab wheel rollout'),'core'),
+    WEX('Row Finisher',0,'12 min steady row @ Zone 2','finisher',null,null),
+  ]},
+  {id:'sat',label:'SAT',title:'Legs + Speed',sub:'Quads · Glutes · Hamstrings · Core · Intervals',rest:false,exercises:[
+    WEX('Treadmill Warm-Up',0,'20 min jog → build to tempo (Zone 2)','warmup',null,null),
+    WEX('Barbell Back Squat',3,'8 @ 60-70% 1RM','lift',yt('barbell back squat'),'quads'),
+    WEX('Romanian Deadlift',3,'8','lift',yt('romanian deadlift'),'posterior'),
+    WEX('Leg Press',3,'10','lift',yt('leg press'),'quads'),
+    WEX('Walking Lunges + Leg Curls (Superset)',3,'10-12 each','lift',yt('walking lunges leg curl superset'),'quads'),
+    WEX('Standing Calf Raises',3,'12-15','lift',yt('standing calf raises'),'posterior'),
+    WEX('Decline Sit-Ups',3,'12-15','lift',yt('decline sit ups'),'core'),
+    WEX('Side Plank',3,'30-45 sec each side','lift',yt('side plank'),'core'),
+    WEX('Speed Intervals',0,'Rest 20-30 min after lifting · 6 x 0.25 mile @ 8.0-8.5 mph (Zone 4-5) · 90s rest between each','finisher',null,null),
+  ]},
+  {id:'sun',label:'SUN',title:'Easy Run',sub:'Zone 2 · Aerobic Base · 4-5 miles',rest:false,exercises:[
+    WEX('Easy Zone 2 Run',0,'4-5 miles @ 5.5-6.0 mph · conversational pace · should feel easy the whole time','warmup',null,null),
+    WEX('Post-Run Stretch',0,'10 min full body stretch - quads, hamstrings, calves, hip flexors','finisher',null,null),
+  ]},
+];
+const SWAP_LIB={
+  chest:[{name:'Push-Ups',muscle:'Chest'},{name:'Incline DB Press',muscle:'Upper Chest'},{name:'Chest Flys',muscle:'Chest'},{name:'Decline Push-Ups',muscle:'Lower Chest'}],
+  shoulders:[{name:'Arnold Press',muscle:'Shoulders'},{name:'Lateral Raises',muscle:'Side Delts'},{name:'Face Pulls',muscle:'Rear Delts'},{name:'Upright Rows',muscle:'Traps/Delts'}],
+  back:[{name:'Pull-Ups',muscle:'Back/Biceps'},{name:'Chin-Ups',muscle:'Back/Biceps'},{name:'Single-Arm Rows',muscle:'Lats'},{name:'Reverse Flys',muscle:'Rear Delts'}],
+  biceps:[{name:'Barbell Curls',muscle:'Biceps'},{name:'Hammer Curls',muscle:'Biceps'},{name:'Concentration Curls',muscle:'Biceps'}],
+  triceps:[{name:'Tricep Dips',muscle:'Triceps'},{name:'Skull Crushers',muscle:'Triceps'},{name:'Overhead Extension',muscle:'Triceps'}],
+  quads:[{name:'Squats',muscle:'Quads'},{name:'Front Squats',muscle:'Quads'},{name:'Goblet Squats',muscle:'Quads'},{name:'Walking Lunges',muscle:'Quads/Glutes'}],
+  posterior:[{name:'Romanian Deadlifts',muscle:'Hamstrings'},{name:'Hip Thrusts',muscle:'Glutes'},{name:'Leg Curls',muscle:'Hamstrings'},{name:'Deadlifts',muscle:'Full Posterior'}],
+  core:[{name:'Plank',muscle:'Core'},{name:'Crunches',muscle:'Upper Abs'},{name:'Leg Raises',muscle:'Lower Abs'},{name:'Bicycle Crunches',muscle:'Obliques'},{name:'Hanging Knee Raises',muscle:'Lower Abs'},{name:'Russian Twists',muscle:'Obliques'},{name:'Ab Wheel Rollouts',muscle:'Full Core'}],
+};
+
+function gwk(){return`w${currentWeek}`;}
+function wdid(){return W_DAYS_DATA[wDay].id;}
+function getWeekDates(w){
+  const s=new Date(START_DATE);s.setDate(s.getDate()+(w-1)*7);
+  const e=new Date(s);e.setDate(e.getDate()+6);
+  const f=d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  return`${f(s)} – ${f(e)}`;
+}
+function getDayDate(di){
+  const s=new Date(START_DATE);s.setDate(s.getDate()+(currentWeek-1)*7+di);
+  return s.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+function changeWeek(d){const n=currentWeek+d;if(n<1)return;currentWeek=n;renderTopbar();renderTabs();renderContent();}
+function ensureW(){
+  const wk=gwk(),did=wdid();
+  if(!workoutData[wk])workoutData[wk]={};
+  if(!workoutData[wk][did])workoutData[wk][did]={exercises:{},bw:'',notes:'',date:''};
+  if(!customEx[wk])customEx[wk]={};if(!customEx[wk][did])customEx[wk][did]={};
+  if(!wOpen[did])wOpen[did]={};
+}
+function getExData(ei){
+  ensureW();const wk=gwk(),did=wdid();
+  if(!workoutData[wk][did].exercises[ei]){const ex=getCurEx(ei);workoutData[wk][did].exercises[ei]={sets:Array.from({length:ex.sets},()=>({wt:'',reps:''})),cardioNote:''};}
+  return workoutData[wk][did].exercises[ei];
+}
+function getCurEx(ei){
+  const wk=gwk(),did=wdid();
+  const base=JSON.parse(JSON.stringify(W_DAYS_DATA[wDay].exercises[ei]));
+  if(customEx[wk]?.[did]?.[ei]){const c=customEx[wk][did][ei];base.name=c.name;if(c.url)base.url=c.url;}
+  return base;
+}
+function renderWorkoutDay(){
+  const day=W_DAYS_DATA[wDay],sb=document.getElementById('saveBarContainer');
+  if(day.rest){sb.innerHTML='';return`<div class="rest-screen"><div class="rest-icon">😴</div><div class="rest-title">REST DAY</div><div class="rest-sub">Recovery is part of the program, Kenny.</div></div>`;}
+  ensureW();const wkd=workoutData[gwk()][wdid()];
+  const hasLifts=day.exercises.some(e=>e.type==='lift');
+  if(hasLifts){sb.innerHTML=`<div class="save-bar"><button class="save-btn" onclick="saveDay()">SAVE WORKOUT</button><button class="clear-btn" onclick="clearDay()">Clear</button></div>`;}else{sb.innerHTML='';}
+  let h=`<div class="main"><div style="margin-bottom:14px"><div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;line-height:1">${day.title}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${day.sub} · ${getDayDate(wDay)}</div></div>`;
+  day.exercises.forEach((_,ei)=>{
+    const ex=getCurEx(ei),ed=getExData(ei),isOpen=wOpen[wdid()]?.[ei]||false;
+    const bc=ex.type==='warmup'?'badge-warmup':ex.type==='finisher'?'badge-finish':'badge-lift';
+    const bt=ex.type==='warmup'?'WARM-UP':ex.type==='finisher'?'FINISHER':`${ex.sets} SETS`;
+    const cc=ex.type==='warmup'?'warmup':ex.type==='finisher'?'finisher':'';
+    const wb=ex.url?`<a class="watch-btn" href="${ex.url}" target="_blank">▶ Watch</a>`:'';
+    const swb=ex.type==='lift'?`<button class="swap-btn" onclick="openSwap(${ei})">⇄</button>`:'';
+    h+=`<div class="exercise-card ${cc}" id="wcard_${ei}"><div class="card-header" onclick="togW(${ei})"><span class="ex-badge ${bc}">${bt}</span><div class="ex-info"><div class="ex-name">${ex.name}</div><div class="ex-target">${ex.sets>0?ex.sets+'×':''}${ex.target}${ex.type==='lift'&&prData[ex.name]?` · <span style="color:var(--accent2);font-weight:700">🏆 ${prData[ex.name].weight}lbs</span>`:''}</div></div><div class="card-actions">${wb}${swb}<span class="chevron ${isOpen?'open':''}">▶</span></div></div><div class="set-logger ${isOpen?'open':''}" id="wlog_${ei}">`;
+    if(ex.type==='lift'){
+      h+=`<div class="sets-grid">`;
+      for(let s=0;s<ex.sets;s++){const sd=ed.sets[s]||{wt:'',reps:''};h+=`<div class="set-block"><div class="set-label">Set ${s+1}</div><div class="set-inputs"><div class="set-input-wrap"><div class="set-input-label">Weight</div><input class="set-input ${sd.wt?'filled':''}" type="number" inputmode="decimal" value="${sd.wt}" placeholder="lbs" onchange="updSet(${ei},${s},'wt',this.value)" oninput="this.className='set-input'+(this.value?' filled':'')"></div><div class="set-input-wrap"><div class="set-input-label">Reps</div><input class="set-input ${sd.reps?'filled':''}" type="number" inputmode="numeric" value="${sd.reps}" placeholder="reps" onchange="updSet(${ei},${s},'reps',this.value)" oninput="this.className='set-input'+(this.value?' filled':'')"></div></div></div>`;}
+      h+=`</div>`;
+    } else {h+=`<div class="cardio-log"><span class="cardio-label">Note / Time:</span><input class="cardio-input" type="text" value="${ed.cardioNote||''}" placeholder="e.g. 25 min, 2.1 mi" onchange="updCardio(${ei},this.value)"></div>`;}
+    h+=`</div></div>`;
+  });
+  h+=`<div class="day-footer"><div class="footer-field"><div class="footer-label">Date</div><input class="footer-input" type="text" value="${getDayDate(wDay)}" readonly></div><div class="footer-field"><div class="footer-label">Body Weight (lbs)</div><input class="footer-input" type="number" inputmode="decimal" value="${wkd.bw||''}" placeholder="185" onchange="updFooter('bw',this.value)"></div><div class="footer-field" style="flex:2;min-width:180px"><div class="footer-label">Notes</div><input class="footer-input" type="text" value="${wkd.notes||''}" placeholder="How did it feel?" onchange="updFooter('notes',this.value)"></div></div></div>`;
+  return h;
+}
+function togW(ei){const did=wdid();if(!wOpen[did])wOpen[did]={};wOpen[did][ei]=!wOpen[did][ei];document.getElementById(`wlog_${ei}`).classList.toggle('open',wOpen[did][ei]);document.querySelector(`#wcard_${ei} .chevron`)?.classList.toggle('open',wOpen[did][ei]);}
+function updSet(ei,si,f,v){const d=getExData(ei);if(!d.sets[si])d.sets[si]={wt:'',reps:''};d.sets[si][f]=v;}
+function updCardio(ei,v){getExData(ei).cardioNote=v;}
+function updFooter(f,v){ensureW();workoutData[gwk()][wdid()][f]=v;}
+function saveDay(){
+  ensureW();
+  workoutData[gwk()][wdid()].date=getDayDate(wDay);
+  // Check for new PRs
+  const day=W_DAYS_DATA[wDay],newPRs=[];
+  day.exercises.forEach((_,ei)=>{
+    const ex=getCurEx(ei);
+    if(ex.type!=='lift')return;
+    const ed=workoutData[gwk()][wdid()].exercises[ei];
+    if(!ed?.sets)return;
+    const maxWt=Math.max(...ed.sets.map(s=>parseFloat(s.wt)||0));
+    const maxReps=ed.sets.find(s=>parseFloat(s.wt)===maxWt)?.reps||'';
+    if(maxWt>0){
+      const prev=prData[ex.name];
+      if(!prev||maxWt>parseFloat(prev.weight)){
+        const isNew=!!prev;
+        prData[ex.name]={weight:maxWt,reps:maxReps,date:getDayDate(wDay)};
+        if(isNew)newPRs.push(ex.name);
+      }
+    }
+  });
+  persist();
+  if(newPRs.length>0){
+    showToast('🏆 NEW PR! '+newPRs[0]);
+    // Flash PR banner
+    const banner=document.createElement('div');
+    banner.className='new-pr-banner';
+    banner.innerHTML=`<span style="font-size:22px">🏆</span><div><div style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;color:var(--accent2)">NEW PERSONAL RECORD!</div><div style="font-size:11px;color:var(--muted)">${newPRs.join(', ')}</div></div>`;
+    const main=document.querySelector('.main');
+    if(main)main.insertBefore(banner,main.firstChild);
+    setTimeout(()=>banner.remove(),4000);
+  } else {
+    showToast('Workout saved! 💪');
+  }
+}
+function clearDay(){if(!confirm('Clear entries for today?'))return;ensureW();workoutData[gwk()][wdid()]={exercises:{},bw:'',notes:'',date:''};persist();renderContent();}
+function openSwap(ei){swapTarget={di:wDay,ei};const ex=getCurEx(ei);document.getElementById('replacingName').textContent=ex.name;document.getElementById('customExName').value='';const grp=ex.swapGroup,opts=[];if(grp&&SWAP_LIB[grp])opts.push(...SWAP_LIB[grp].filter(o=>o.name!==ex.name));Object.values(SWAP_LIB).flat().forEach(o=>{if(!opts.find(x=>x.name===o.name)&&o.name!==ex.name)opts.push(o);});document.getElementById('swapOptions').innerHTML=opts.slice(0,10).map(o=>`<div class="swap-option" onclick="applySwap('${o.name.replace(/'/g,"\\'")}','${yt(o.name)}')"><div class="swap-option-name">${o.name}</div><div class="swap-option-muscle">${o.muscle}</div></div>`).join('');document.getElementById('swapOverlay').classList.add('open');}
+function closeSwap(e){if(!e||e.target===document.getElementById('swapOverlay'))document.getElementById('swapOverlay').classList.remove('open');}
+function applySwap(name,url){if(!swapTarget)return;const{di,ei}=swapTarget,wk=gwk(),did=W_DAYS_DATA[di].id;if(!customEx[wk])customEx[wk]={};if(!customEx[wk][did])customEx[wk][did]={};customEx[wk][did][ei]={name,url};persist();document.getElementById('swapOverlay').classList.remove('open');renderContent();showToast(`Swapped to ${name}!`);}
+function applyCustomSwap(){const name=document.getElementById('customExName').value.trim();if(!name){showToast('Enter a name first');return;}applySwap(name,yt(name));}
+function buildExport(week){const wk=`w${week}`;let t=`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n  GRIND — WEEK ${week}\n  ${getWeekDates(week)}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;W_DAYS_DATA.forEach((day,di)=>{if(day.rest)return;const did=day.id,dwd=workoutData[wk]?.[did];t+=`▸ ${day.title.toUpperCase()} — ${day.label}\n`;if(dwd?.date)t+=`  Date: ${dwd.date}\n`;if(dwd?.bw)t+=`  BW: ${dwd.bw} lbs\n`;t+='\n';day.exercises.forEach((bx,ei)=>{if(bx.type!=='lift')return;const exName=customEx[wk]?.[did]?.[ei]?.name||bx.name,ed=dwd?.exercises?.[ei];t+=`  ${exName} (target: ${bx.sets}×${bx.target})\n`;if(ed?.sets?.length){ed.sets.forEach((s,i)=>{if(s.wt||s.reps)t+=`    Set ${i+1}: ${s.wt||'—'} lbs × ${s.reps||'—'} reps\n`;});}else t+=`    (not logged)\n`;});if(dwd?.notes)t+=`\n  Notes: ${dwd.notes}\n`;t+='\n'+'─'.repeat(30)+'\n\n';});return t;}
+function openExport(){document.getElementById('exportWeekNum').textContent=currentWeek;document.getElementById('exportWeekDates').textContent=getWeekDates(currentWeek);document.getElementById('exportContent').textContent=buildExport(currentWeek);document.getElementById('exportOverlay').classList.add('open');}
+function closeExport(e){if(!e||e.target===document.getElementById('exportOverlay'))document.getElementById('exportOverlay').classList.remove('open');}
+function copyExport(){navigator.clipboard.writeText(document.getElementById('exportContent').textContent).then(()=>showToast('Copied!')).catch(()=>showToast('Select text to copy'));}
+function downloadExport(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([buildExport(currentWeek)],{type:'text/plain'}));a.download=`GRIND_Week${currentWeek}.txt`;a.click();}
+
+// ══════════════════════════════════════════
+// MEAL DATA — 4 rotating weeks
+// ══════════════════════════════════════════
+let mWeek=1, mOpen={}, shopCk={};
+
+// Meal swap selections (persisted)
+let mealSwaps={lunch:null,dinner:null};
+
+const LUNCH_OPTIONS=[
+  {name:'Ground Turkey + Brown Rice + Broccoli',foods:[
+    {name:'Ground Turkey (93% lean)',amount:'200g cooked',cal:290,p:44,c:0,f:12,cost:1.50},
+    {name:'Brown Rice (cooked)',amount:'150g',cal:165,p:4,c:34,f:1,cost:0.20},
+    {name:'Frozen Broccoli',amount:'150g',cal:50,p:4,c:10,f:0,cost:0.35},
+    {name:'Olive Oil',amount:'1 tsp',cal:40,p:0,c:0,f:5,cost:0.05}]},
+  {name:'Ground Beef + White Rice + Peas',foods:[
+    {name:'Lean Ground Beef (93%)',amount:'200g cooked',cal:280,p:38,c:0,f:13,cost:1.40},
+    {name:'White Rice (cooked)',amount:'150g',cal:170,p:3,c:37,f:0,cost:0.15},
+    {name:'Frozen Peas',amount:'150g',cal:110,p:7,c:18,f:1,cost:0.30},
+    {name:'Soy Sauce',amount:'1 tbsp',cal:10,p:1,c:1,f:0,cost:0.05}]},
+  {name:'Canned Tuna + Brown Rice + Corn',foods:[
+    {name:'Canned Tuna (in water)',amount:'170g = 1 can',cal:160,p:38,c:0,f:1,cost:0.99},
+    {name:'Brown Rice (cooked)',amount:'150g',cal:165,p:4,c:34,f:1,cost:0.20},
+    {name:'Frozen Corn',amount:'150g',cal:130,p:5,c:28,f:2,cost:0.25},
+    {name:'Light Mayo',amount:'1 tbsp',cal:35,p:0,c:1,f:3,cost:0.10}]},
+  {name:'Chicken Breast + Pasta + Marinara',foods:[
+    {name:'Chicken Breast',amount:'200g cooked',cal:240,p:46,c:0,f:5,cost:1.40},
+    {name:'Pasta (cooked)',amount:'140g',cal:210,p:8,c:40,f:1,cost:0.25},
+    {name:'Marinara Sauce',amount:'80g',cal:50,p:2,c:8,f:1,cost:0.30}]},
+  {name:'Shrimp + White Rice + Mixed Veg',foods:[
+    {name:'Shrimp (cooked)',amount:'200g',cal:200,p:42,c:2,f:3,cost:1.50},
+    {name:'White Rice (cooked)',amount:'150g',cal:170,p:3,c:37,f:0,cost:0.15},
+    {name:'Frozen Mixed Vegetables',amount:'150g',cal:75,p:4,c:14,f:1,cost:0.30},
+    {name:'Soy Sauce + Sesame Oil',amount:'1 tbsp ea',cal:50,p:1,c:1,f:5,cost:0.10}]},
+];
+
+const DINNER_OPTIONS=[
+  {name:'Chicken Thigh + Sweet Potato + Green Beans',foods:[
+    {name:'Chicken Thighs (skinless)',amount:'220g cooked',cal:320,p:46,c:0,f:15,cost:1.20},
+    {name:'Sweet Potato (baked)',amount:'200g',cal:180,p:4,c:42,f:0,cost:0.50},
+    {name:'Frozen Green Beans',amount:'150g',cal:45,p:3,c:10,f:0,cost:0.25}]},
+  {name:'Tilapia + Pasta + Spinach',foods:[
+    {name:'Tilapia Fillet',amount:'200g cooked',cal:210,p:44,c:0,f:4,cost:1.00},
+    {name:'Pasta (cooked)',amount:'140g',cal:210,p:8,c:40,f:1,cost:0.25},
+    {name:'Frozen Spinach',amount:'150g',cal:35,p:4,c:5,f:1,cost:0.30},
+    {name:'Olive Oil + Garlic',amount:'1 tsp',cal:45,p:0,c:1,f:5,cost:0.10}]},
+  {name:'Chicken Thigh + Baked Potato + Broccoli',foods:[
+    {name:'Chicken Thighs (skinless)',amount:'220g cooked',cal:320,p:46,c:0,f:15,cost:1.20},
+    {name:'Baked Potato',amount:'200g',cal:170,p:4,c:38,f:0,cost:0.40},
+    {name:'Frozen Broccoli',amount:'150g',cal:50,p:4,c:10,f:0,cost:0.35}]},
+  {name:'Ground Beef + Sweet Potato + Green Beans',foods:[
+    {name:'Lean Ground Beef (93%)',amount:'200g cooked',cal:280,p:38,c:0,f:13,cost:1.40},
+    {name:'Sweet Potato (baked)',amount:'200g',cal:180,p:4,c:42,f:0,cost:0.50},
+    {name:'Frozen Green Beans',amount:'150g',cal:45,p:3,c:10,f:0,cost:0.25}]},
+  {name:'Pork Chops + Rice + Frozen Corn',foods:[
+    {name:'Pork Chops (lean)',amount:'200g cooked',cal:290,p:40,c:0,f:14,cost:1.20},
+    {name:'White Rice (cooked)',amount:'150g',cal:170,p:3,c:37,f:0,cost:0.15},
+    {name:'Frozen Corn',amount:'150g',cal:130,p:5,c:28,f:2,cost:0.25}]},
+];
+
+let mealSwapTarget=null;
+function openMealSwap(type){
+  mealSwapTarget=type;
+  document.getElementById('mealSwapName').textContent=type==='lunch'?'Lunch':'Dinner';
+  const opts=type==='lunch'?LUNCH_OPTIONS:DINNER_OPTIONS;
+  document.getElementById('mealSwapOptions').innerHTML=opts.map((o,i)=>{
+    const mcal=o.foods.reduce((s,f)=>s+f.cal,0);
+    const mp=o.foods.reduce((s,f)=>s+f.p,0);
+    const mcost=o.foods.reduce((s,f)=>s+f.cost,0);
+    return`<div class="swap-option" onclick="applyMealSwap(${i})" style="margin-bottom:8px">
+      <div class="swap-option-name">${o.name}</div>
+      <div class="swap-option-muscle">${mcal} cal · ${mp}g protein · ~$${mcost.toFixed(2)}/serving</div>
+    </div>`;
+  }).join('');
+  document.getElementById('mealSwapOverlay').classList.add('open');
+}
+function closeMealSwap(e){if(!e||e.target===document.getElementById('mealSwapOverlay'))document.getElementById('mealSwapOverlay').classList.remove('open');}
+function applyMealSwap(idx){
+  if(!mealSwapTarget)return;
+  mealSwaps[mealSwapTarget]=idx;
+  persist();
+  document.getElementById('mealSwapOverlay').classList.remove('open');
+  renderContent();
+  showToast('Meal swapped! 🍽️');
+}
+function resetMealSwap(type){
+  mealSwaps[type]=null;
+  persist();
+  renderContent();
+  showToast('Meal reset to default!');
+}
+
+const MT={cal:2400,p:195,c:240,f:65};
+const mf=(name,amount,cal,p,c,f,cost)=>({name,amount,cal,p,c,f,cost});
+
+// FIXED every week (breakfast, snack1, shake)
+const FIXED_BREAKFAST={name:'Breakfast',time:'0700',icon:'🌅',bg:'rgba(255,202,58,0.12)',fixed:true,shake:false,
+  note:'⏱ Prep overnight oats the night before — zero morning effort.',
+  foods:[mf('Rolled Oats (dry)','80g',300,10,54,5,0.25),mf('Eggs (2 whole)','2 large',140,12,1,10,0.50),mf('Banana','1 medium',90,1,23,0,0.25),mf('Whey Protein','1 scoop',120,25,3,2,0.50)]};
+const FIXED_SNACK1={name:'Morning Snack',time:'1000',icon:'🍎',bg:'rgba(127,255,95,0.1)',fixed:true,shake:false,
+  note:'Quick — no prep needed.',
+  foods:[mf('Greek Yogurt (0% fat)','200g',110,20,8,0,0.75),mf('Frozen Mixed Berries','80g',40,1,10,0,0.30)]};
+const FIXED_SHAKE={name:'Pre-Workout Shake',time:'1530',icon:'💪',bg:'rgba(127,255,95,0.18)',fixed:true,shake:true,
+  note:'🏋️ 60–90 min before training. Drink and go.',
+  foods:[mf('Whey Protein Shake','1 scoop + water',120,25,3,2,0.50),mf('Rice Cakes','2 cakes',70,1,16,0,0.30)]};
+
+// ROTATING lunches and dinners per week
+const WEEKLY_MEALS={
+  1:{
+    theme:'Week 1',
+    lunch:{name:'Lunch',time:'1300',icon:'☀️',bg:'rgba(71,200,255,0.1)',fixed:false,shake:false,
+      note:'🔁 Meal prepped Sunday. 5 containers. Reheat in 2 min.',
+      foods:[mf('Ground Turkey (93% lean)','200g cooked',290,44,0,12,1.50),mf('Brown Rice (cooked)','150g',165,4,34,1,0.20),mf('Frozen Broccoli','150g',50,4,10,0,0.35),mf('Olive Oil','1 tsp',40,0,0,5,0.05)]},
+    dinner:{name:'Dinner',time:'1930',icon:'🌙',bg:'rgba(255,107,107,0.1)',fixed:false,shake:false,
+      note:'🔥 Chicken thighs are cheaper and more flavorful than breast. Bake all 7 on Sunday.',
+      foods:[mf('Chicken Thighs (skinless)','220g cooked',320,46,0,15,1.20),mf('Sweet Potato (baked)','200g',180,4,42,0,0.50),mf('Frozen Green Beans','150g',45,3,10,0,0.25)]},
+    shop:[
+      {cat:'🥩 Proteins',items:[
+        {name:'Ground Turkey (93% lean)',qty:'1.4 kg (3 lbs)',note:'5 lunches × 280g raw',unit:'$5.00/lb',total:'$15.00'},
+        {name:'Chicken Thighs (boneless, skinless)',qty:'1.6 kg (3.5 lbs)',note:'7 dinners × 220g cooked — buy family pack',unit:'$2.50/lb',total:'$8.75'},
+        {name:'Eggs',qty:'1 dozen',note:'2/day × 7 = 14 eggs',unit:'$3.50/doz',total:'$3.50'},
+        {name:'Greek Yogurt (0% fat)',qty:'2 tubs (1.4 kg)',note:'200g/day × 7',unit:'$5.00/tub',total:'$10.00'},
+        {name:'Whey Protein Powder',qty:'~14 scoops',note:'2 scoops/day (breakfast + shake)',unit:'$1.00/scoop',total:'$14.00'},
+      ]},
+      {cat:'🌾 Carbs & Grains',items:[
+        {name:'Rolled Oats',qty:'560g',note:'80g/day × 7',unit:'$0.10/oz',total:'$2.00'},
+        {name:'Brown Rice (dry)',qty:'490g',note:'Makes ~1.5kg cooked for 5 lunches',unit:'$1.50/lb',total:'$1.60'},
+        {name:'Sweet Potatoes',qty:'7 medium',note:'1 per day',unit:'$0.89/lb',total:'$2.75'},
+        {name:'Rice Cakes (plain)',qty:'1 pack (14+)',note:'2/day × 7',unit:'$3.00/pack',total:'$3.00'},
+        {name:'Bananas',qty:'7',note:'1/day',unit:'$0.25 each',total:'$1.75'},
+      ]},
+      {cat:'🥦 Vegetables',items:[
+        {name:'Frozen Broccoli',qty:'1 kg bag',note:'~150g/day × 7',unit:'$2.50/bag',total:'$2.50'},
+        {name:'Frozen Green Beans',qty:'1 kg bag',note:'~150g/day × 7',unit:'$2.50/bag',total:'$2.50'},
+        {name:'Frozen Mixed Berries',qty:'500g bag',note:'80g/day × 7',unit:'$4.00/bag',total:'$4.00'},
+      ]},
+      {cat:'🧈 Pantry',items:[
+        {name:'Olive Oil',qty:'1 bottle',note:'Lasts many weeks',unit:'$8.00/bottle',total:'~$1.00'},
+        {name:'Seasoning (salt, pepper, garlic)',qty:'pantry',note:'Lasts months',unit:'—',total:'~$0.50'},
+      ]},
+    ],
+    total:'$72.85',
+    prep:['Cook 1.4 kg ground turkey — season salt, pepper, garlic powder. Portion 5 lunch containers.','Cook 490g dry brown rice. Portion 150g into each lunch container.','Steam frozen broccoli in microwave, 150g per lunch container.','Bake 7 chicken thighs at 200°C / 25 min. Season simply — garlic, salt, pepper.','Bake 7 sweet potatoes whole at 200°C / 45 min.','Store chicken + sweet potato separately. Reheat dinner nightly in 3 min.'],
+  },
+  2:{
+    theme:'Week 2',
+    lunch:{name:'Lunch',time:'1300',icon:'☀️',bg:'rgba(71,200,255,0.1)',fixed:false,shake:false,
+      note:'🔁 Meal prepped Sunday. Ground beef + white rice is one of the cheapest combos out there.',
+      foods:[mf('Lean Ground Beef (93%)','200g cooked',280,38,0,13,1.40),mf('White Rice (cooked)','150g',170,3,37,0,0.15),mf('Frozen Peas','150g',110,7,18,1,0.30),mf('Soy Sauce (low sodium)','1 tbsp',10,1,1,0,0.05)]},
+    dinner:{name:'Dinner',time:'1930',icon:'🌙',bg:'rgba(255,107,107,0.1)',fixed:false,shake:false,
+      note:'🐟 Tilapia is one of the cheapest proteins at the grocery store — mild taste, easy to season.',
+      foods:[mf('Tilapia Fillet','200g cooked',210,44,0,4,1.00),mf('Pasta (cooked)','140g',210,8,40,1,0.25),mf('Frozen Spinach','150g',35,4,5,1,0.30),mf('Olive Oil + Garlic','1 tsp',45,0,1,5,0.10)]},
+    shop:[
+      {cat:'🥩 Proteins',items:[
+        {name:'Lean Ground Beef (93%)',qty:'1.4 kg (3 lbs)',note:'5 lunches × 280g raw',unit:'$5.50/lb',total:'$16.50'},
+        {name:'Tilapia Fillets (frozen)',qty:'1.5 kg',note:'7 dinners × 200g cooked',unit:'$3.50/lb',total:'$11.55'},
+        {name:'Eggs',qty:'1 dozen',note:'2/day × 7 = 14 eggs',unit:'$3.50/doz',total:'$3.50'},
+        {name:'Greek Yogurt (0% fat)',qty:'2 tubs',note:'200g/day × 7',unit:'$5.00/tub',total:'$10.00'},
+        {name:'Whey Protein Powder',qty:'~14 scoops',note:'2 scoops/day',unit:'$1.00/scoop',total:'$14.00'},
+      ]},
+      {cat:'🌾 Carbs & Grains',items:[
+        {name:'Rolled Oats',qty:'560g',note:'80g/day × 7',unit:'$0.10/oz',total:'$2.00'},
+        {name:'White Rice (dry)',qty:'490g',note:'Makes ~1.5kg cooked for 5 lunches',unit:'$1.00/lb',total:'$1.00'},
+        {name:'Pasta (dry)',qty:'500g',note:'Makes ~1kg cooked for 7 dinners',unit:'$1.50/lb',total:'$1.50'},
+        {name:'Rice Cakes (plain)',qty:'1 pack',note:'2/day × 7',unit:'$3.00/pack',total:'$3.00'},
+        {name:'Bananas',qty:'7',note:'1/day',unit:'$0.25 each',total:'$1.75'},
+      ]},
+      {cat:'🥦 Vegetables',items:[
+        {name:'Frozen Peas',qty:'1 kg bag',note:'~150g/day × 7',unit:'$2.50/bag',total:'$2.50'},
+        {name:'Frozen Spinach',qty:'1 kg bag',note:'~150g/day × 7',unit:'$2.50/bag',total:'$2.50'},
+        {name:'Frozen Mixed Berries',qty:'500g bag',note:'80g/day × 7',unit:'$4.00/bag',total:'$4.00'},
+      ]},
+      {cat:'🧈 Pantry',items:[
+        {name:'Low-Sodium Soy Sauce',qty:'1 bottle',note:'Lasts many weeks',unit:'$2.50',total:'~$0.35'},
+        {name:'Olive Oil + Garlic',qty:'pantry',note:'—',unit:'—',total:'~$0.50'},
+      ]},
+    ],
+    total:'$74.15',
+    prep:['Brown 1.4 kg ground beef — season with soy sauce, garlic, pepper. Portion 5 lunch containers.','Cook 490g dry white rice. Portion 150g into each lunch container.','Microwave frozen peas, 150g per lunch container.','Season tilapia with lemon, garlic, salt. Bake at 200°C / 15 min — do all 7 at once.','Cook 500g dry pasta for dinners — 140g cooked per serving. Store separately.','Portion pasta + tilapia into 7 dinner containers. Add spinach when reheating.'],
+  },
+  3:{
+    theme:'Week 3',
+    lunch:{name:'Lunch',time:'1300',icon:'☀️',bg:'rgba(71,200,255,0.1)',fixed:false,shake:false,
+      note:'🔁 Canned tuna is the cheapest protein per gram on the market. High protein, zero prep.',
+      foods:[mf('Canned Tuna (in water)','170g = 1 can',160,38,0,1,0.99),mf('Brown Rice (cooked)','150g',165,4,34,1,0.20),mf('Frozen Corn','150g',130,5,28,2,0.25),mf('Light Mayo','1 tbsp',35,0,1,3,0.10)]},
+    dinner:{name:'Dinner',time:'1930',icon:'🌙',bg:'rgba(255,107,107,0.1)',fixed:false,shake:false,
+      note:'🥔 Baked potato is cheaper than sweet potato and still solid carbs for post-workout.',
+      foods:[mf('Chicken Thighs (skinless)','220g cooked',320,46,0,15,1.20),mf('Baked Potato','200g',170,4,38,0,0.40),mf('Frozen Broccoli','150g',50,4,10,0,0.35)]},
+    shop:[
+      {cat:'🥩 Proteins',items:[
+        {name:'Canned Tuna in Water',qty:'7 cans (170g each)',note:'1 can = 1 lunch',unit:'$0.99/can',total:'$6.93'},
+        {name:'Chicken Thighs (boneless, skinless)',qty:'1.6 kg (3.5 lbs)',note:'7 dinners × 220g cooked',unit:'$2.50/lb',total:'$8.75'},
+        {name:'Eggs',qty:'1 dozen',note:'2/day × 7',unit:'$3.50/doz',total:'$3.50'},
+        {name:'Greek Yogurt (0% fat)',qty:'2 tubs',note:'200g/day × 7',unit:'$5.00/tub',total:'$10.00'},
+        {name:'Whey Protein Powder',qty:'~14 scoops',note:'2 scoops/day',unit:'$1.00/scoop',total:'$14.00'},
+      ]},
+      {cat:'🌾 Carbs & Grains',items:[
+        {name:'Rolled Oats',qty:'560g',note:'80g/day × 7',unit:'$0.10/oz',total:'$2.00'},
+        {name:'Brown Rice (dry)',qty:'490g',note:'Makes ~1.5kg cooked for 5 lunches',unit:'$1.50/lb',total:'$1.60'},
+        {name:'Russet Potatoes',qty:'7 medium',note:'1 per day for dinner',unit:'$0.50 each',total:'$3.50'},
+        {name:'Rice Cakes (plain)',qty:'1 pack',note:'2/day × 7',unit:'$3.00/pack',total:'$3.00'},
+        {name:'Bananas',qty:'7',note:'1/day',unit:'$0.25 each',total:'$1.75'},
+      ]},
+      {cat:'🥦 Vegetables',items:[
+        {name:'Frozen Corn',qty:'1 kg bag',note:'~150g/day × 7',unit:'$2.50/bag',total:'$2.50'},
+        {name:'Frozen Broccoli',qty:'1 kg bag',note:'~150g/day × 7',unit:'$2.50/bag',total:'$2.50'},
+        {name:'Frozen Mixed Berries',qty:'500g bag',note:'80g/day × 7',unit:'$4.00/bag',total:'$4.00'},
+      ]},
+      {cat:'🧈 Pantry',items:[
+        {name:'Light Mayo',qty:'1 jar',note:'Lasts many weeks',unit:'$3.00/jar',total:'~$0.70'},
+        {name:'Salt, pepper, seasoning',qty:'pantry',note:'—',unit:'—',total:'~$0.50'},
+      ]},
+    ],
+    total:'$64.23',
+    prep:['No cooking needed for lunch — just mix 1 can tuna + mayo. Make fresh daily or batch mix in a bowl.','Cook 490g dry brown rice. Portion 150g into each of 5 containers with corn.','Bake 7 chicken thighs at 200°C / 25 min.','Bake 7 potatoes whole at 200°C / 50 min. Or microwave each in 5 min.','Steam frozen broccoli as needed. Store chicken + potato separately.'],
+  },
+  4:{
+    theme:'Week 4',
+    lunch:{name:'Lunch',time:'1300',icon:'☀️',bg:'rgba(71,200,255,0.1)',fixed:false,shake:false,
+      note:'🔁 Quinoa has more protein than rice — great swap for the 4th week to keep variety.',
+      foods:[mf('Ground Turkey (93% lean)','200g cooked',290,44,0,12,1.50),mf('Quinoa (cooked)','150g',185,7,34,3,0.40),mf('Frozen Mixed Vegetables','150g',75,4,14,1,0.30),mf('Olive Oil','1 tsp',40,0,0,5,0.05)]},
+    dinner:{name:'Dinner',time:'1930',icon:'🌙',bg:'rgba(255,107,107,0.1)',fixed:false,shake:false,
+      note:'🦐 Frozen shrimp is very budget-friendly bought in bulk and cooks in under 5 minutes.',
+      foods:[mf('Shrimp (frozen, cooked)','200g',200,42,2,3,1.50),mf('White Rice (cooked)','150g',170,3,37,0,0.15),mf('Frozen Green Beans','150g',45,3,10,0,0.25),mf('Soy Sauce + Sesame Oil','1 tbsp ea',50,1,1,5,0.10)]},
+    shop:[
+      {cat:'🥩 Proteins',items:[
+        {name:'Ground Turkey (93% lean)',qty:'1.4 kg (3 lbs)',note:'5 lunches × 280g raw',unit:'$5.00/lb',total:'$15.00'},
+        {name:'Frozen Shrimp (cooked)',qty:'1.5 kg',note:'7 dinners × 200g',unit:'$6.00/lb',total:'$19.80'},
+        {name:'Eggs',qty:'1 dozen',note:'2/day × 7',unit:'$3.50/doz',total:'$3.50'},
+        {name:'Greek Yogurt (0% fat)',qty:'2 tubs',note:'200g/day × 7',unit:'$5.00/tub',total:'$10.00'},
+        {name:'Whey Protein Powder',qty:'~14 scoops',note:'2 scoops/day',unit:'$1.00/scoop',total:'$14.00'},
+      ]},
+      {cat:'🌾 Carbs & Grains',items:[
+        {name:'Rolled Oats',qty:'560g',note:'80g/day × 7',unit:'$0.10/oz',total:'$2.00'},
+        {name:'Quinoa (dry)',qty:'400g',note:'Makes ~1.2kg cooked for 5 lunches',unit:'$3.00/lb',total:'$2.65'},
+        {name:'White Rice (dry)',qty:'490g',note:'Makes ~1.5kg cooked for 7 dinners',unit:'$1.00/lb',total:'$1.00'},
+        {name:'Rice Cakes (plain)',qty:'1 pack',note:'2/day × 7',unit:'$3.00/pack',total:'$3.00'},
+        {name:'Bananas',qty:'7',note:'1/day',unit:'$0.25 each',total:'$1.75'},
+      ]},
+      {cat:'🥦 Vegetables',items:[
+        {name:'Frozen Mixed Vegetables',qty:'1 kg bag',note:'~150g/day × 7',unit:'$2.50/bag',total:'$2.50'},
+        {name:'Frozen Green Beans',qty:'1 kg bag',note:'~150g/day × 7',unit:'$2.50/bag',total:'$2.50'},
+        {name:'Frozen Mixed Berries',qty:'500g bag',note:'80g/day × 7',unit:'$4.00/bag',total:'$4.00'},
+      ]},
+      {cat:'🧈 Pantry',items:[
+        {name:'Low-Sodium Soy Sauce',qty:'1 bottle',note:'—',unit:'$2.50',total:'~$0.35'},
+        {name:'Sesame Oil (small)',qty:'1 bottle',note:'Lasts many weeks',unit:'$4.00',total:'~$0.50'},
+      ]},
+    ],
+    total:'$82.55',
+    prep:['Cook 1.4 kg ground turkey — season with garlic, cumin, salt. Portion 5 lunch containers.','Cook 400g dry quinoa. Portion 150g into each lunch container with mixed veg.','Cook 490g dry white rice for 7 dinners.','Thaw shrimp in cold water for 5 min. Cook nightly in a pan with soy sauce — takes 3 min.','Store shrimp raw/frozen, cook fresh each night. Much faster than chicken.'],
+  },
+};
+
+function getMealWeek(){return((mWeek-1)%4)+1;}
+function getMealPlan(){return WEEKLY_MEALS[getMealWeek()];}
+function getMeals(){
+  const w=getMealPlan();
+  const lunch = mealSwaps.lunch!==null ? {...LUNCH_OPTIONS[mealSwaps.lunch], time:'1300', icon:'☀️', bg:'rgba(71,200,255,0.1)', fixed:false, shake:false, note:'🔁 Swapped meal — prep Sunday or cook fresh.'} : w.lunch;
+  const dinner = mealSwaps.dinner!==null ? {...DINNER_OPTIONS[mealSwaps.dinner], time:'1930', icon:'🌙', bg:'rgba(255,107,107,0.1)', fixed:false, shake:false, note:'🔥 Swapped dinner — cook fresh or batch prep.'} : w.dinner;
+  return[FIXED_BREAKFAST,FIXED_SNACK1,lunch,FIXED_SHAKE,dinner];
+}
+function mTotals(){let cal=0,p=0,c=0,f=0,cost=0;getMeals().forEach(m=>m.foods.forEach(fd=>{cal+=fd.cal;p+=fd.p;c+=fd.c;f+=fd.f;cost+=fd.cost;}));return{cal,p,c,f,cost};}
+function pct(v,t){return Math.min(100,Math.round(v/t*100));}
+
+function renderMealDay(){
+  document.getElementById('saveBarContainer').innerHTML='';
+  const meals=getMeals(),tot=mTotals(),wp=getMealPlan();
+  let h=`<div class="main">
+    <div class="week-badge"><div class="week-badge-label">📅 ${wp.theme}</div><div class="week-badge-sub">${['W1','W2','W3','W4'][(getMealWeek()-1)]} of 4-week rotation</div></div>
+    <div class="budget-banner"><div class="budget-icon">💰</div><div class="budget-info"><div class="budget-title">BUDGET PLAN — SAME DAILY</div><div class="budget-sub">Same meals every day · New lunch & dinner each week<br>Breakfast · Snack · Shake stay the same all 4 weeks</div></div><div class="budget-day">~$${tot.cost.toFixed(2)}<span>per day</span></div></div>
+    <div class="day-summary"><div class="summary-title">📊 DAILY MACROS — EVERY DAY THIS WEEK</div>
+      <div class="macro-row"><span class="macro-name p">Protein</span><div class="macro-track"><div class="macro-fill p" style="width:${pct(tot.p,MT.p)}%"></div></div><span class="macro-nums">${tot.p}g / ${MT.p}g</span></div>
+      <div class="macro-row"><span class="macro-name c">Carbs</span><div class="macro-track"><div class="macro-fill c" style="width:${pct(tot.c,MT.c)}%"></div></div><span class="macro-nums">${tot.c}g / ${MT.c}g</span></div>
+      <div class="macro-row"><span class="macro-name f">Fat</span><div class="macro-track"><div class="macro-fill f" style="width:${pct(tot.f,MT.f)}%"></div></div><span class="macro-nums">${tot.f}g / ${MT.f}g</span></div>
+      <div class="cal-row"><span class="cal-label">Daily Calories</span><span class="cal-value">${tot.cal} <span style="font-size:11px;color:var(--muted)">/ ${MT.cal} kcal</span></span></div>
+    </div>`;
+
+  meals.forEach((meal,mi)=>{
+    const mcal=meal.foods.reduce((s,f)=>s+f.cal,0);
+    const mcost=meal.foods.reduce((s,f)=>s+f.cost,0);
+    const mp=meal.foods.reduce((s,f)=>s+f.p,0);
+    const mc=meal.foods.reduce((s,f)=>s+f.c,0);
+    const mfa=meal.foods.reduce((s,f)=>s+f.f,0);
+    const isOpen=mOpen[`${mWeek}_${mi}`]||false;
+    const isRotating=!meal.fixed&&!meal.shake;
+    h+=`<div class="meal-card ${meal.shake?'shake-card':isRotating?'rotating':''}">
+      <div class="meal-header" onclick="togM(${mi})">
+        <div class="meal-icon-box" style="background:${meal.bg}">${meal.icon}</div>
+        <div class="meal-info">
+          <div class="meal-name-row"><span class="meal-name">${meal.name}</span>${meal.fixed?`<span class="fixed-label">every week</span>`:`<span class="fixed-label" style="color:var(--w-accent);border-color:rgba(232,255,71,0.3)">week ${getMealWeek()}</span>`}</div>
+          <div class="meal-time">${meal.time} · ${mp}p · ${mc}c · ${mfa}f</div>
+        </div>
+        <div class="meal-right"><div class="meal-cals">${mcal} cal</div><div class="meal-cost">~$${mcost.toFixed(2)}</div></div>
+        ${(mi===2||mi===4)?'<button class="swap-btn" onclick="event.stopPropagation();openMealSwap(\''+( mi===2?'lunch':'dinner')+'\')" style="flex-shrink:0">⇄</button>':''}
+        <span class="chevron ${isOpen?'open':''}">▶</span>
+      </div>
+      <div class="meal-body ${isOpen?'open':''}" id="mb_${mi}">`;
+    meal.foods.forEach(fd=>{h+=`<div class="food-row"><div class="food-left"><div class="food-name">${fd.name}</div><div class="food-detail">${fd.amount} · ~$${fd.cost.toFixed(2)}/serving</div></div><div class="food-right"><div class="food-macros">${fd.p}p · ${fd.c}c · ${fd.f}f</div><div class="food-cal">${fd.cal} cal</div></div></div>`;});
+    if(meal.note)h+=`<div class="meal-note ${meal.shake?'shake':isRotating?'rotate':''}">${meal.note}</div>`;
+    h+=`</div></div>`;
+  });
+
+  // Prep guide
+  h+=`<div class="prep-box"><div class="prep-title">🍳 SUNDAY PREP — ${getMealWeek()===3?'60':'90'} MINUTES</div><div class="prep-step">`;
+  wp.prep.forEach((step,i)=>{h+=`${i+1}. ${step.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}<br>`;});
+  h+=`</div></div></div>`;
+  return h;
+}
+
+function togM(mi){const k=`${mWeek}_${mi}`;mOpen[k]=!mOpen[k];const b=document.getElementById(`mb_${mi}`);b.classList.toggle('open',mOpen[k]);b.previousElementSibling.querySelector('.chevron').classList.toggle('open',mOpen[k]);}
+
+let shopViewWeek=1;
+function openShop(){
+  shopViewWeek=getMealWeek();
+  renderShopModal();
+  document.getElementById('shopOverlay').classList.add('open');
+}
+function renderShopModal(){
+  const w=((shopViewWeek-1)%4)+1,wp=WEEKLY_MEALS[w];
+  document.getElementById('shopWeekLabel').textContent=shopViewWeek;
+  document.getElementById('shopWeekSub').textContent=`${wp.theme} shopping list · ${getWeekDates(shopViewWeek)}`;
+  document.getElementById('shopTotalVal').textContent=`~${wp.total}`;
+  document.getElementById('shopWeekPills').innerHTML=[1,2,3,4].map(n=>`<div class="week-pill ${shopViewWeek===n?'active':''}" onclick="switchShopWeek(${n})"><div class="week-pill-num">W${n}</div><div class="week-pill-sub">${WEEKLY_MEALS[n].theme.replace('Week ','Wk ')}</div></div>`).join('');
+  document.getElementById('shopList').innerHTML=wp.shop.map(s=>`<div class="shop-section"><div class="shop-cat">${s.cat}</div>`+s.items.map((item,i)=>{const k=`w${w}_${s.cat}_${i}`,ck=shopCk[k]||false;return`<div class="shop-item"><div class="shop-cb ${ck?'checked':''}" onclick="togShop('w${w}_${s.cat}_${i}',this)"></div><div class="shop-text"><div class="shop-name" style="${ck?'text-decoration:line-through;color:var(--muted)':''}">${item.name}</div><div class="shop-qty">${item.qty} · ${item.note}</div></div><div class="shop-price">${item.total}</div></div>`;}).join('')+`</div>`).join('');
+}
+function switchShopWeek(n){shopViewWeek=n;renderShopModal();}
+function closeShop(e){if(!e||e.target===document.getElementById('shopOverlay'))document.getElementById('shopOverlay').classList.remove('open');}
+function togShop(k,el){shopCk[k]=!shopCk[k];el.classList.toggle('checked',shopCk[k]);el.nextElementSibling.querySelector('.shop-name').style=shopCk[k]?'text-decoration:line-through;color:var(--muted)':'';persist();}
+
+// ══════════════════════════════════════════
+// SHARED RENDER
+// ══════════════════════════════════════════
+function renderTopbar(){
+  const title=document.getElementById('appTitle'),center=document.getElementById('topbarCenter'),btn=document.getElementById('topbarBtn');
+  if(currentView==='workout'){
+    title.textContent='GRIND';title.className='app-title workout';
+    center.innerHTML=`<div class="week-nav"><button onclick="changeWeek(-1)">‹</button><div class="week-info"><div class="week-num workout">WEEK ${currentWeek}</div><div class="week-dates">${getWeekDates(currentWeek)}</div></div><button onclick="changeWeek(1)">›</button></div>`;
+    btn.innerHTML='📋 Export';btn.onclick=openExport;
+    document.getElementById('prBtn').style.display='inline-block';
+  } else {
+    title.textContent='FUEL';title.className='app-title meal';
+    center.innerHTML=`<div class="week-nav"><button onclick="changeMealWeek(-1)">‹</button><div class="week-info"><div class="week-num meal">WEEK ${mWeek}</div><div class="week-dates">${getMealPlan().theme}</div></div><button onclick="changeMealWeek(1)">›</button></div>`;
+    btn.textContent='🛒 Shop';btn.onclick=openShop;
+    document.getElementById('prBtn').style.display='none';
+  }
+}
+function changeMealWeek(d){const n=mWeek+d;if(n<1)return;mWeek=n;renderTopbar();renderContent();}
+
+function renderTabs(){
+  if(currentView==='workout'){
+    document.getElementById('dayTabs').innerHTML=W_DAYS_DATA.map((d,i)=>`<div class="dtab ${d.rest?'rest':''} ${i===wDay?'active workout':''}" onclick="${d.rest?'':` setWDay(${i})`}">${d.label}<span class="dtab-sub">${d.rest?'rest':d.title.split(' ')[0]}</span></div>`).join('');
+  } else {
+    const days=['MON','TUE','WED','THU','FRI','SAT','SUN'],labels=['Upper','Lower','Rest','Push','Pull','Legs','Rest'];
+    document.getElementById('dayTabs').innerHTML=days.map((d,i)=>`<div class="dtab" style="color:${i===2||i===6?'var(--muted)':'var(--m-accent)'};border-bottom:2px solid ${i===2||i===6?'transparent':'var(--m-accent)'};opacity:${i===2||i===6?'0.4':'1'}">${d}<span class="dtab-sub">${labels[i]}</span></div>`).join('');
+  }
+}
+function setWDay(i){wDay=i;renderTabs();renderContent();}
+function renderContent(){document.getElementById('scrollArea').scrollTop=0;document.getElementById('content').innerHTML=currentView==='workout'?renderWorkoutDay():renderMealDay();}
+// ══════════════════════════════════════════
+// FIREBASE CLOUD SAVING
+// ══════════════════════════════════════════
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB5uG39CmbnA5aDmVjk_OGA7kEOzDf71wo",
+  authDomain: "grind-fuel.firebaseapp.com",
+  projectId: "grind-fuel",
+  storageBucket: "grind-fuel.firebasestorage.app",
+  messagingSenderId: "1039126729396",
+  appId: "1:1039126729396:web:5a7133be64debf61933de1"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+const USER_ID = 'kenny';
+
+let saveTimer = null;
+function persist(){
+  try{
+    localStorage.setItem('gf3_w',JSON.stringify(workoutData));
+    localStorage.setItem('gf3_cx',JSON.stringify(customEx));
+    localStorage.setItem('gf3_sh',JSON.stringify(shopCk));
+    localStorage.setItem('gf3_pr',JSON.stringify(prData));
+    localStorage.setItem('gf3_ms',JSON.stringify(mealSwaps));
+  }catch(e){}
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async()=>{
+    try{
+      await setDoc(doc(db,'users',USER_ID),{
+        workoutData: JSON.stringify(workoutData),
+        customEx: JSON.stringify(customEx),
+        shopCk: JSON.stringify(shopCk),
+        prData: JSON.stringify(prData),
+        mealSwaps: JSON.stringify(mealSwaps),
+        updatedAt: new Date().toISOString()
+      });
+      showToast('☁️ Saved!');
+    }catch(e){console.log('Cloud save error:',e);}
+  },1500);
+}
+
+async function init(){
+  const map={1:0,2:1,3:2,4:3,5:4,6:5,0:6};
+  wDay=map[new Date().getDay()]??0;
+  const diff=Math.floor((new Date()-START_DATE)/(7*24*60*60*1000));
+  currentWeek=Math.max(1,diff+1);
+  mWeek=currentWeek;
+  document.getElementById('content').innerHTML=`<div style="text-align:center;padding:60px 20px;color:var(--muted)"><div style="font-size:30px;margin-bottom:12px">☁️</div><div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px">LOADING YOUR DATA...</div></div>`;
+  renderTopbar();renderTabs();
+  try{
+    const snap = await getDoc(doc(db,'users',USER_ID));
+    if(snap.exists()){
+      const d=snap.data();
+      if(d.workoutData)workoutData=JSON.parse(d.workoutData);
+      if(d.customEx)customEx=JSON.parse(d.customEx);
+      if(d.shopCk)shopCk=JSON.parse(d.shopCk);
+      if(d.prData)prData=JSON.parse(d.prData);
+      if(d.mealSwaps)mealSwaps=JSON.parse(d.mealSwaps);
+      showToast('☁️ Data loaded!');
+    } else {
+      try{const a=localStorage.getItem('gf3_w');if(a)workoutData=JSON.parse(a);const b=localStorage.getItem('gf3_cx');if(b)customEx=JSON.parse(b);const c=localStorage.getItem('gf3_sh');if(c)shopCk=JSON.parse(c);}catch(e){}
+    }
+  }catch(e){
+    try{const a=localStorage.getItem('gf3_w');if(a)workoutData=JSON.parse(a);const b=localStorage.getItem('gf3_cx');if(b)customEx=JSON.parse(b);const c=localStorage.getItem('gf3_sh');if(c)shopCk=JSON.parse(c);}catch(e2){}
+  }
+  renderContent();
+}
+
+
+function openPR(){
+  const entries=Object.entries(prData);
+  if(entries.length===0){
+    document.getElementById('prList').innerHTML=`<div style="text-align:center;padding:30px;color:var(--muted)"><div style="font-size:30px;margin-bottom:10px">🏋️</div><div>No PRs yet — log your first workout!</div></div>`;
+  } else {
+    entries.sort((a,b)=>a[0].localeCompare(b[0]));
+    document.getElementById('prList').innerHTML=entries.map(([name,pr])=>`
+      <div class="pr-row">
+        <div class="pr-ex-name">${name}</div>
+        <div><span class="pr-val">${pr.weight} lbs</span><span class="pr-reps">× ${pr.reps||'?'} reps</span></div>
+      </div>
+      <div style="font-size:9px;color:var(--muted);margin:-5px 0 8px 4px">${pr.date||''}</div>
+    `).join('');
+  }
+  document.getElementById('prOverlay').classList.add('open');
+}
+function closePR(e){if(!e||e.target===document.getElementById('prOverlay'))document.getElementById('prOverlay').classList.remove('open');}
+function resetAllPRs(){if(!confirm('Reset all personal records?'))return;prData={};persist();closePR();showToast('PRs reset! 🗑️');}
+
+// Expose functions to global scope for HTML onclick handlers
+window.switchView=switchView;
+window.openMealSwap=openMealSwap;
+window.closeMealSwap=closeMealSwap;
+window.applyMealSwap=applyMealSwap;
+window.resetMealSwap=resetMealSwap;
+window.resetAllPRs=resetAllPRs;
+window.openPR=openPR;
+window.closePR=closePR;
+window.changeWeek=changeWeek;
+window.changeMealWeek=changeMealWeek;
+window.setWDay=setWDay;
+window.togW=togW;
+window.updSet=updSet;
+window.updCardio=updCardio;
+window.updFooter=updFooter;
+window.saveDay=saveDay;
+window.clearDay=clearDay;
+window.openSwap=openSwap;
+window.closeSwap=closeSwap;
+window.applySwap=applySwap;
+window.applyCustomSwap=applyCustomSwap;
+window.openExport=openExport;
+window.closeExport=closeExport;
+window.copyExport=copyExport;
+window.downloadExport=downloadExport;
+window.togM=togM;
+window.openShop=openShop;
+window.closeShop=closeShop;
+window.togShop=togShop;
+window.switchShopWeek=switchShopWeek;
+init();
+</script>
+</body>
+</html>
